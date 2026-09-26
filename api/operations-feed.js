@@ -31,7 +31,9 @@ export default async function handler(req, res) {
     return res.status(200).json({
       requests: requestResult.data || [],
       staff: staffResult.data || [],
-      writes_enabled: process.env.DEMO_ALLOW_PUBLIC_WRITES === 'true'
+      // This is a portfolio/demo operations board. Writes are handled only by the
+      // same-origin server action endpoint; the Supabase secret never reaches the browser.
+      writes_enabled: true
     });
   } catch (error) {
     return res.status(500).json({ error: error.message || 'Could not load operations data.' });
