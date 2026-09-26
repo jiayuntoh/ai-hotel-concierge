@@ -21,12 +21,12 @@ function authorized(req) {
   const auth = req.headers.authorization || '';
   if (configuredSecret && auth === `Bearer ${configuredSecret}`) return true;
 
-  // Explicit portfolio-demo escape hatch. Do not enable with real guest data.
-  if (process.env.DEMO_ALLOW_PUBLIC_WRITES === 'true') {
-    const allowedOrigin = process.env.APP_ORIGIN || 'https://ava-hotel.vercel.app';
-    return req.headers.origin === allowedOrigin;
-  }
-  return false;
+  // Portfolio demo: allow browser actions only from the deployed Ava Hotel site.
+  // Database credentials remain server-side and all actions are still validated below.
+  const allowedOrigin = process.env.APP_ORIGIN || 'https://ava-hotel.vercel.app';
+  const origin = req.headers.origin || '';
+  const referer = req.headers.referer || '';
+  return origin === allowedOrigin || referer.startsWith(`${allowedOrigin}/`);
 }
 
 export default async function handler(req, res) {
