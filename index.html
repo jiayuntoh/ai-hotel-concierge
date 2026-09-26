@@ -106,32 +106,6 @@ h1{
   font-size:clamp(20px,1.6vw,26px);font-weight:600
 }
 vapi-widget{display:block;max-width:100%}
-.sam-voice-cta{
-  position:relative;display:inline-flex;align-items:center;justify-content:center;
-  border-radius:18px;transform-origin:center;
-  animation:samAttention 2.4s ease-in-out infinite;
-}
-.sam-voice-cta::before{
-  content:"";position:absolute;inset:-7px;border-radius:22px;
-  border:2px solid rgba(33,59,49,.28);opacity:0;pointer-events:none;
-  animation:samRing 2.4s ease-out infinite;
-}
-.sam-voice-cta.engaged,
-.sam-voice-cta.engaged::before{animation:none}
-@keyframes samAttention{
-  0%,58%,100%{transform:scale(1)}
-  68%{transform:scale(1.07)}
-  78%{transform:scale(1.02)}
-  88%{transform:scale(1.07)}
-}
-@keyframes samRing{
-  0%,55%{opacity:0;transform:scale(.92)}
-  68%{opacity:.85}
-  100%{opacity:0;transform:scale(1.24)}
-}
-@media(prefers-reduced-motion:reduce){
-  .sam-voice-cta,.sam-voice-cta::before{animation:none}
-}
 .prompt{
   width:100%;min-height:44px;border:1px solid rgba(20,20,17,.09);background:#fff;
   border-radius:10px;padding:11px 13px;margin-top:9px;display:flex;
@@ -238,20 +212,18 @@ vapi-widget{display:block;max-width:100%}
           <strong>Talk to Sam</strong>
         </div>
         <!-- VAPI CONFIG — production browser voice widget for Sam. -->
-        <div class="sam-voice-cta" onclick="this.classList.add('engaged')" aria-label="Start talking to Sam">
-          <vapi-widget
-            public-key="a192050e-cf5c-4740-90ef-b0c232534192"
-            assistant-id="15c67286-5cd1-4569-91d2-6558a65be1b2"
-            mode="voice"
-            theme="light"
-            size="tiny"
-            main-label="Sam"
-            start-button-text="Start"
-            end-button-text="End"
-            empty-voice-message="Tap Start to speak."
-            show-transcript="false">
-          </vapi-widget>
-        </div>
+        <vapi-widget
+          public-key="a192050e-cf5c-4740-90ef-b0c232534192"
+          assistant-id="15c67286-5cd1-4569-91d2-6558a65be1b2"
+          mode="voice"
+          theme="light"
+          size="tiny"
+          main-label="Sam"
+          start-button-text="Start"
+          end-button-text="End"
+          empty-voice-message="Tap Start to speak."
+          show-transcript="false">
+        </vapi-widget>
         <button class="prompt" onclick="focusSam()">I need two extra towels.<b>›</b></button>
         <button class="prompt" onclick="focusSam()">I finish work at 4 and have a call at 7. What can I do?<b>›</b></button>
         <button class="prompt" onclick="focusSam()">What’s the best nightclub tonight?<b>›</b></button>
