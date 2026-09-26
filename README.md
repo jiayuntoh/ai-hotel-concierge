@@ -1,61 +1,96 @@
-# Ava Hotel — AI Concierge Demo
+# Ava Hotel — Sam AI Concierge Demo
 
-A single Vercel-ready repository for the **Ava Hotel** guest experience, **Ava** voice concierge, and hotel operations workflow.
+A public portfolio/demo repository for **Ava Hotel**, with **Sam** as the voice concierge and a connected hotel-operations board.
 
-> Ava Hotel is a fictional demo property.
+> Ava Hotel is a fictional demo property. Do not use real guest PII or real hotel operational data in the public demo.
 
-## Live routes after one Vercel deployment
+## What it demonstrates
+
+Guest speaks to Sam → Vapi calls a protected server endpoint → Supabase stores the structured request → the operations board displays a sanitized live feed.
+
+### Routes
 
 - `/` — guest-facing Ava Hotel website
-- `/operations` — hotel operations board
-- `/api/vapi-tool` — Vapi `create_service_request` endpoint
-- `/api/request-action` — operations-board write endpoint
+- `/operations` — public, read-only operations board
+- `/api/public-config` — browser-safe Vapi identifiers only
+- `/api/operations-feed` — sanitized public demo feed
+- `/api/vapi-tool` — protected Vapi tool endpoint
+- `/api/request-action` — protected operations mutation endpoint
+
+## Security model
+
+This repository intentionally contains **no private API keys**.
+
+- Supabase secret/service-role credentials stay in Vercel environment variables.
+- Vapi private API keys do not belong in this repository.
+- Vapi's public key and assistant ID are supplied through Vercel environment variables at runtime so forks do not inherit the original account configuration.
+- Raw Supabase tables have RLS enabled with no anonymous read policies.
+- The public operations board reads a sanitized server-side feed rather than querying Supabase directly.
+- `/api/vapi-tool` requires `VAPI_TOOL_SECRET`.
+- `/api/request-action` requires `OPS_ACTION_SECRET`, unless the explicit demo-only public-write switch is enabled.
+
+A public Vapi key is still visible to visitors at runtime by design. Restrict it in Vapi to your production origin and assistant.
+
+## Setup
+
+1. Fork or clone this repository.
+2. Create a Supabase project and run `sql/schema.sql`.
+3. Import the repo into Vercel.
+4. Copy `.env.example` values into **Vercel → Project → Settings → Environments → Production**.
+5. Create a Vapi assistant for Sam and a `create_service_request` custom tool.
+6. Set the tool server URL to:
+   `https://YOUR_DOMAIN/api/vapi-tool`
+7. In Vapi, create a Custom Credential using **Bearer Token** authentication. Use the same random value as `VAPI_TOOL_SECRET`, and attach that credential to the tool.
+8. Restrict the Vapi public key to your production origin and Sam assistant.
+9. Redeploy Vercel.
+
+## Environment variables
+
+See `.env.example`.
+
+Required production values:
+
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+- `VAPI_PUBLIC_KEY`
+- `VAPI_ASSISTANT_ID`
+- `VAPI_TOOL_SECRET`
+
+Optional/admin:
+
+- `OPS_ACTION_SECRET`
+- `APP_ORIGIN`
+- `DEMO_ALLOW_PUBLIC_WRITES=false`
+
+Keep `DEMO_ALLOW_PUBLIC_WRITES=false` for a public portfolio deployment. If you need a real staff workflow, add authentication rather than exposing mutation endpoints.
 
 ## Repository structure
 
 ```text
 .
-├── index.html                  # Guest website (public entry point)
+├── index.html
 ├── operations/
-│   ├── index.html              # Operations board
+│   ├── index.html
 │   ├── styles.css
 │   ├── app.js
-│   ├── config.js
-│   └── README.md
+│   └── config.js
 ├── api/
-│   ├── vapi-tool.js            # Vapi → Supabase serverless endpoint
-│   └── request-action.js       # Operations actions endpoint
+│   ├── public-config.js
+│   ├── operations-feed.js
+│   ├── vapi-tool.js
+│   └── request-action.js
+├── assets/
 ├── sql/
-│   └── schema.sql              # Supabase schema
-├── tests/                      # Vapi regression suite
-├── docs/                       # Prompt, settings, contracts, setup guide
-├── design-reference/           # Visual reference only
+│   └── schema.sql
+├── .env.example
+├── .gitignore
+├── LICENSE
 ├── package.json
 └── vercel.json
 ```
 
-## Why it is structured this way
+## Reuse
 
-The repository is deployed as **one Vercel project**. The guest website owns the root URL, while the operations board is a nested route. Vercel serverless functions live at the repository root under `/api`, and the Supabase dependency is declared in the root `package.json`.
+The project is licensed under MIT. Forks should create their own Vapi assistant, Vapi public key, Supabase project, server credentials, and Vercel environment variables.
 
-## Quick deploy
-
-1. Push the contents of this folder to the root of the GitHub repository.
-2. Import that GitHub repository into Vercel.
-3. Leave **Root Directory** as the repository root (`./`).
-4. Deploy.
-5. Confirm both `/` and `/operations` load.
-6. Follow `docs/SETUP_CHECKLIST.md` to connect Supabase and Vapi.
-
-Do not upload only the ZIP to GitHub. Unzip it first, then commit the files and folders shown above.
-
-
-## Supabase environment
-
-Configure these variables in the Vercel Production environment before enabling the live operations board:
-
-- `SUPABASE_URL`
-- `SUPABASE_PUBLISHABLE_KEY`
-- `SUPABASE_SECRET_KEY`
-
-After saving them, a new production deployment is required. The browser reads only the URL and publishable key through `/api/public-config`; the secret key remains server-side for the Vapi and operations API routes.
+The original account-specific Vapi public identifier may still exist in older Git history. It is not a private credential, but rotating/restricting the public key is recommended if you want old history to be unusable.

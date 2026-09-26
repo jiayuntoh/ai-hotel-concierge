@@ -249,8 +249,7 @@ vapi-widget{
         </div>
         <!-- VAPI CONFIG — production browser voice widget for Sam. -->
         <vapi-widget
-          public-key="a192050e-cf5c-4740-90ef-b0c232534192"
-          assistant-id="15c67286-5cd1-4569-91d2-6558a65be1b2"
+          id="samVoice"
           mode="voice"
           theme="light"
           size="tiny"
@@ -280,15 +279,35 @@ function toast(message){
 function focusSam(){
   document.getElementById('demo')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
-document.addEventListener('DOMContentLoaded',()=>{
-  const voiceWidget=document.querySelector('vapi-widget');
+async function initSamVoice(){
+  const voiceWidget=document.getElementById('samVoice');
   const voiceCard=document.getElementById('demo');
   if(!voiceWidget||!voiceCard) return;
+
+  try{
+    const response=await fetch('/api/public-config',{cache:'no-store'});
+    const cfg=await response.json();
+    if(!response.ok||!cfg.VAPI_PUBLIC_KEY||!cfg.VAPI_ASSISTANT_ID) throw new Error('Sam voice configuration is unavailable.');
+    voiceWidget.setAttribute('public-key',cfg.VAPI_PUBLIC_KEY);
+    voiceWidget.setAttribute('assistant-id',cfg.VAPI_ASSISTANT_ID);
+    const script=document.createElement('script');
+    script.src='https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js';
+    script.async=true;
+    script.type='text/javascript';
+    document.body.appendChild(script);
+    voiceWidget.dataset.ready='true';
+  }catch(error){
+    console.error(error);
+    voiceWidget.style.display='none';
+    toast('Sam voice demo is not configured yet.');
+  }
+
   const stopPulse=()=>voiceCard.classList.add('sam-engaged');
   voiceWidget.addEventListener('pointerdown',stopPulse,{once:true});
   voiceWidget.addEventListener('click',stopPulse,{once:true});
-});
+}
+document.addEventListener('DOMContentLoaded',initSamVoice);
 </script>
-<script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
+
 </body>
 </html>

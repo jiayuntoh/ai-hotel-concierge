@@ -17,14 +17,14 @@
   ];
   const minsAgo = n => new Date(Date.now()-n*60000).toISOString();
   const demoRequests = [
-    {id:'r1',display_id:'REQ-1042',room_number:'512',guest_name:'Toh',request_type:'amenity',details:'2 extra towels',quantity:2,department:'housekeeping',priority:'normal',status:'NEW',assignee_id:null,source:'Voice',created_at:minsAgo(2),sla_target_at:new Date(Date.now()+8*60000).toISOString(),events:[{type:'CREATED',actor:'Ava · Voice',at:minsAgo(2),note:'Guest requested 2 extra towels.'}]},
+    {id:'r1',display_id:'REQ-1042',room_number:'512',guest_name:'Toh',request_type:'amenity',details:'2 extra towels',quantity:2,department:'housekeeping',priority:'normal',status:'NEW',assignee_id:null,source:'Voice',created_at:minsAgo(2),sla_target_at:new Date(Date.now()+8*60000).toISOString(),events:[{type:'CREATED',actor:'Sam · Voice',at:minsAgo(2),note:'Guest requested 2 extra towels.'}]},
     {id:'r2',display_id:'REQ-1041',room_number:'407',guest_name:'Morgan',request_type:'amenity',details:'Extra pillow',quantity:1,department:'housekeeping',priority:'normal',status:'ASSIGNED',assignee_id:'maria',source:'Front desk',created_at:minsAgo(7),sla_target_at:new Date(Date.now()+5*60000).toISOString(),events:[{type:'CREATED',actor:'Front desk',at:minsAgo(7),note:'Guest requested an extra pillow.'},{type:'ASSIGNED',actor:'Ops supervisor',at:minsAgo(5),note:'Assigned to Maria Santos.'}]},
-    {id:'r3',display_id:'REQ-1040',room_number:'806',guest_name:'Lee',request_type:'maintenance',details:'AC not cooling',department:'engineering',priority:'high',status:'IN_PROGRESS',assignee_id:'carlos',source:'Voice',created_at:minsAgo(14),sla_target_at:new Date(Date.now()-1*60000).toISOString(),events:[{type:'CREATED',actor:'Ava · Voice',at:minsAgo(14),note:'Guest reports AC is running but not cooling.'},{type:'ASSIGNED',actor:'Ops supervisor',at:minsAgo(12),note:'Assigned to Carlos Vega.'},{type:'STARTED',actor:'Carlos Vega',at:minsAgo(8),note:'Work started.'}]},
+    {id:'r3',display_id:'REQ-1040',room_number:'806',guest_name:'Lee',request_type:'maintenance',details:'AC not cooling',department:'engineering',priority:'high',status:'IN_PROGRESS',assignee_id:'carlos',source:'Voice',created_at:minsAgo(14),sla_target_at:new Date(Date.now()-1*60000).toISOString(),events:[{type:'CREATED',actor:'Sam · Voice',at:minsAgo(14),note:'Guest reports AC is running but not cooling.'},{type:'ASSIGNED',actor:'Ops supervisor',at:minsAgo(12),note:'Assigned to Carlos Vega.'},{type:'STARTED',actor:'Carlos Vega',at:minsAgo(8),note:'Work started.'}]},
     {id:'r4',display_id:'REQ-1039',room_number:'319',guest_name:'Patel',request_type:'amenity',details:'Toiletries unavailable',department:'housekeeping',priority:'normal',status:'BLOCKED',assignee_id:'maria',source:'Staff',created_at:minsAgo(21),sla_target_at:new Date(Date.now()-6*60000).toISOString(),blocked_reason:'Item unavailable',events:[{type:'CREATED',actor:'Maria Santos',at:minsAgo(21),note:'Guest requested toiletries.'},{type:'BLOCKED',actor:'Maria Santos',at:minsAgo(10),note:'Item unavailable on floor.'}]},
     {id:'r5',display_id:'REQ-1038',room_number:'214',guest_name:'Ng',request_type:'amenity',details:'Baby cot delivered',department:'housekeeping',priority:'normal',status:'COMPLETED',assignee_id:'ana',source:'Front desk',created_at:minsAgo(38),sla_target_at:minsAgo(18),completed_at:minsAgo(16),events:[{type:'CREATED',actor:'Front desk',at:minsAgo(38),note:'Guest requested baby cot.'},{type:'ASSIGNED',actor:'Ops supervisor',at:minsAgo(33),note:'Assigned to Ana Kim.'},{type:'STARTED',actor:'Ana Kim',at:minsAgo(25),note:'Delivery started.'},{type:'COMPLETED',actor:'Ana Kim',at:minsAgo(16),note:'Guest request completed.'}]}
   ];
 
-  let state = {requests:[], staff:[...demoStaff], filter:'all', query:'', live:false, supabase:null};
+  let state = {requests:[], staff:[...demoStaff], filter:'all', query:'', live:false, writesEnabled:false};
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
 
@@ -51,7 +51,11 @@
     return statusVisible&&dept&&(!q||text.includes(q));
   })}
 
-  function render(){renderMetrics();renderBoard();renderStaff();}
+  function render(){renderMetrics();renderBoard();renderStaff();updateWriteControls();}
+  function updateWriteControls(){
+    const disabled=state.live&&!state.writesEnabled;
+    ['#simulateBtn','#newRequestBtn'].forEach(sel=>{const el=$(sel);if(el){el.disabled=disabled;el.title=disabled?'Public portfolio mode is read-only. Use Sam to create live requests.':'';}});
+  }
   function renderMetrics(){const active=state.requests.filter(r=>!['COMPLETED','CANCELLED'].includes(r.status));$('#activeMetric').textContent=active.length;$('#unassignedMetric').textContent=active.filter(r=>!r.assignee_id).length;$('#riskMetric').textContent=active.filter(r=>['risk','breach'].includes(slaState(r))).length;$('#blockedMetric').textContent=active.filter(r=>r.status==='BLOCKED').length}
   function renderBoard(){
     const data=filtered();
@@ -95,36 +99,38 @@
 
   function createLocalRequest(data,source='Manual'){
     const dept=data.department||'housekeeping';const sla=dept==='housekeeping'?10:dept==='engineering'?15:20;
-    const r={id:`local-${Date.now()}`,display_id:nextDisplayId(),room_number:data.room_number,guest_name:data.guest_name||'',request_type:data.request_type||'amenity',details:data.details,quantity:data.quantity||null,department:dept,priority:data.priority||'normal',status:'NEW',assignee_id:null,source,created_at:new Date().toISOString(),sla_target_at:new Date(Date.now()+sla*60000).toISOString(),events:[{type:'CREATED',actor:source==='Voice'?'Ava · Voice':'Manual intake',at:new Date().toISOString(),note:data.details}]};state.requests.unshift(r);saveDemo();render();toast(`${r.display_id} created`);return r;
+    const r={id:`local-${Date.now()}`,display_id:nextDisplayId(),room_number:data.room_number,guest_name:data.guest_name||'',request_type:data.request_type||'amenity',details:data.details,quantity:data.quantity||null,department:dept,priority:data.priority||'normal',status:'NEW',assignee_id:null,source,created_at:new Date().toISOString(),sla_target_at:new Date(Date.now()+sla*60000).toISOString(),events:[{type:'CREATED',actor:source==='Voice'?'Sam · Voice':'Manual intake',at:new Date().toISOString(),note:data.details}]};state.requests.unshift(r);saveDemo();render();toast(`${r.display_id} created`);return r;
   }
 
   async function sendAction(body){
-    try{const res=await fetch(window.HOTEL_OPS_CONFIG.ACTION_API_URL||'/api/request-action',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});const data=await res.json();if(!res.ok)throw new Error(data.error||'Action failed');toast('Updated');return data}catch(e){toast(e.message||'Action failed')}
+    if(state.live&&!state.writesEnabled){toast('This public portfolio board is read-only.');return null}
+    try{const res=await fetch(window.HOTEL_OPS_CONFIG.ACTION_API_URL||'/api/request-action',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});const data=await res.json();if(!res.ok)throw new Error(data.error||'Action failed');toast('Updated');return data}catch(e){toast(e.message||'Action failed');return null}
   }
 
-  async function initSupabase(){
-    let cfg=window.HOTEL_OPS_CONFIG||{};
-    if(!cfg.SUPABASE_URL||!cfg.SUPABASE_PUBLISHABLE_KEY){
-      try{
-        const response=await fetch('/api/public-config',{cache:'no-store'});
-        if(response.ok) cfg=await response.json();
-      }catch(e){ console.warn('Public config unavailable',e); }
-    }
-    if(!cfg.SUPABASE_URL||!cfg.SUPABASE_PUBLISHABLE_KEY){loadDemo();render();return}
-    try{
-      const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2');state.supabase=createClient(cfg.SUPABASE_URL,cfg.SUPABASE_PUBLISHABLE_KEY);state.live=true;$('#modeDot').classList.add('live');$('#modeLabel').textContent='Live · Supabase';
-      await refreshLive();
-      state.supabase.channel('ops-board').on('postgres_changes',{event:'*',schema:'public',table:'service_requests'},refreshLive).on('postgres_changes',{event:'*',schema:'public',table:'request_events'},refreshLive).subscribe();
-    }catch(e){console.error(e);loadDemo();render();toast('Live connection failed — using demo mode')}
-  }
   async function refreshLive(){
-    const [requestResult,staffResult]=await Promise.all([
-      state.supabase.from('service_requests').select('*, request_events(*)').order('created_at',{ascending:false}),
-      state.supabase.from('staff').select('*').eq('active',true).order('name')
-    ]);
-    if(requestResult.error){console.error(requestResult.error);return}
-    if(!staffResult.error&&staffResult.data) state.staff=staffResult.data;
-    state.requests=(requestResult.data||[]).map(normalizeLiveRow);render();
+    const cfg=window.HOTEL_OPS_CONFIG||{};
+    const response=await fetch(cfg.FEED_API_URL||'/api/operations-feed',{cache:'no-store'});
+    const data=await response.json();
+    if(!response.ok) throw new Error(data.error||'Live operations feed failed');
+    state.live=true;
+    state.writesEnabled=Boolean(data.writes_enabled);
+    state.staff=data.staff||[];
+    state.requests=(data.requests||[]).map(normalizeLiveRow);
+    $('#modeDot').classList.add('live');
+    $('#modeLabel').textContent=state.writesEnabled?'Live · Supabase':'Live · Supabase · read-only';
+    render();
+  }
+
+  async function initLiveFeed(){
+    try{
+      await refreshLive();
+      setInterval(()=>refreshLive().catch(console.error),4000);
+    }catch(e){
+      console.error(e);
+      loadDemo();
+      render();
+      toast('Live connection failed — using demo mode');
+    }
   }
 
   function escapeHTML(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
@@ -139,5 +145,5 @@
   $('#newRequestForm').onsubmit=async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget).entries());if(state.live){await sendAction({action:'create',...data,source:'Manual'});await refreshLive();}else createLocalRequest(data,'Manual');hideModal()};
   $('#simulateBtn').onclick=async()=>{const data={room_number:'512',guest_name:'Toh',request_type:'amenity',details:'2 extra towels',quantity:2,department:'housekeeping',priority:'normal'};if(state.live){await sendAction({action:'create',...data,source:'Voice simulation'});await refreshLive();}else createLocalRequest(data,'Voice')};
 
-  initSupabase();
+  initLiveFeed();
 })();

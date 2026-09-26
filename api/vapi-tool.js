@@ -51,7 +51,7 @@ async function createRequest(db, toolCall, callContext) {
   };
   const { data: inserted, error } = await db.from('service_requests').insert(payload).select('*').single();
   if (error) throw error;
-  await db.from('request_events').insert({ request_id: inserted.id, event_type: 'CREATED', actor_type: 'voice_agent', actor_id: 'Ava', note: inserted.details, metadata: { source_call_id: callContext?.id || null } });
+  await db.from('request_events').insert({ request_id: inserted.id, event_type: 'CREATED', actor_type: 'voice_agent', actor_id: 'Sam', note: inserted.details, metadata: { source_call_id: callContext?.id || null } });
   return { success: true, request_id: inserted.display_id, status: 'submitted', department: routing.department };
 }
 
@@ -115,8 +115,18 @@ async function updateRequest(db, toolCall) {
   };
 }
 
+function authorized(req) {
+  const expected = process.env.VAPI_TOOL_SECRET;
+  if (!expected) return false;
+  const auth = req.headers.authorization || '';
+  const xVapiSecret = req.headers['x-vapi-secret'] || '';
+  const provided = auth.startsWith('Bearer ') ? auth.slice(7) : xVapiSecret;
+  return provided === expected;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (!authorized(req)) return res.status(401).json({ error: 'Unauthorized' });
   const message = req.body?.message;
   const calls = message?.toolCallList || [];
   if (message?.type !== 'tool-calls' || !calls.length) return res.status(200).json({ results: [] });

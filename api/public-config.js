@@ -1,13 +1,13 @@
 export default function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
-  const url = process.env.SUPABASE_URL || '';
-  const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-  if (!url || !publishableKey) {
-    return res.status(503).json({ configured: false });
-  }
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  const publicKey = process.env.VAPI_PUBLIC_KEY || '';
+  const assistantId = process.env.VAPI_ASSISTANT_ID || '';
+
   return res.status(200).json({
-    configured: true,
-    SUPABASE_URL: url,
-    SUPABASE_PUBLISHABLE_KEY: publishableKey
+    configured: Boolean(publicKey && assistantId),
+    VAPI_PUBLIC_KEY: publicKey,
+    VAPI_ASSISTANT_ID: assistantId
   });
 }
