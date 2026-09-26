@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ava Hotel — AI Concierge</title>
+<style>
+:root {
+  --ink:#171714;
+  --muted:#68665f;
+  --ivory:#f8f6f1;
+  --paper:#fff;
+  --forest:#213b31;
+  --hair:rgba(23,23,20,.12);
+  --shadow:0 18px 55px rgba(32,28,20,.13);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ivory);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button{font:inherit}
+.hero{min-height:680px;max-height:760px;height:92vh;position:relative;overflow:hidden;background:var(--ivory)}
+.photo{position:absolute;right:0;top:0;width:51%;height:100%;background-image:url("https://images.unsplash.com/photo-1776763018821-8feeaeeee0a5?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=82&w=2400");background-size:cover;background-position:center;}
+.photo:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--ivory) 0%,rgba(248,246,241,.72) 11%,rgba(248,246,241,.08) 34%,transparent 55%)}
+.shell{position:relative;z-index:2;max-width:1260px;height:100%;margin:0 auto;padding:0 38px}
+nav{height:72px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-family:Georgia,"Times New Roman",serif;font-size:19px;letter-spacing:.30em}
+.brand span{display:block;font-family:Inter,sans-serif;font-size:6px;letter-spacing:.32em;margin-top:7px;color:var(--muted)}
+.navlinks{display:flex;gap:30px;margin-left:auto;margin-right:28px;font-size:10px;font-weight:600}
+.navlinks a{color:var(--ink);text-decoration:none}
+.nav-cta{border:0;background:var(--forest);color:#fff;padding:11px 17px;border-radius:9px;font-size:11px;font-weight:650;cursor:pointer}
+.grid{height:calc(100% - 72px);display:grid;grid-template-columns:minmax(410px,1fr) 350px;align-items:center;gap:64px;padding-bottom:36px}
+.copy{max-width:535px;align-self:center}
+.eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:18px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:54px;line-height:.98;letter-spacing:-.042em;font-weight:500;margin:0 0 20px}
+.lead{font-size:16px;line-height:1.55;max-width:470px;color:#33332f;margin:0 0 27px}
+.actions{display:flex;gap:10px}
+.primary,.secondary{border-radius:9px;padding:13px 18px;font-size:11px;font-weight:680;cursor:pointer}
+.primary{border:1px solid var(--forest);background:var(--forest);color:#fff}
+.secondary{border:1px solid var(--hair);background:rgba(255,255,255,.64);color:var(--ink);backdrop-filter:blur(10px)}
+.proofs{display:flex;gap:27px;margin-top:31px;padding-top:20px;border-top:1px solid var(--hair);font-size:10px;font-weight:650;color:#3f3f3a}
+.proof{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.mark{width:6px;height:6px;border-radius:50%;background:var(--forest);opacity:.7}
+
+.voice{width:350px;background:rgba(255,255,255,.94);border:1px solid rgba(22,22,18,.11);border-radius:15px;padding:22px;box-shadow:var(--shadow);backdrop-filter:blur(14px);justify-self:end}
+.voice-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.voice-head strong{font-family:Georgia,"Times New Roman",serif;font-size:17px;font-weight:600}
+.online{font-size:8px;display:flex;align-items:center;gap:5px;color:#55534d}
+.dot{width:6px;height:6px;background:#2daf61;border-radius:50%}
+.mic{width:72px;height:72px;border-radius:50%;margin:12px auto 8px;display:grid;place-items:center;background:radial-gradient(circle,#dcebdd 0 42%,#eaf3e9 43% 63%,#f3f8f2 64%)}
+.tap{text-align:center;font-size:10px;font-weight:700;margin-bottom:20px}
+.prompt{width:100%;min-height:37px;border:1px solid rgba(20,20,17,.09);background:#fff;border-radius:10px;padding:9px 11px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;text-align:left;gap:12px;font-size:9px;color:#3d3c38;cursor:pointer}
+.prompt b{font-size:14px;font-weight:400;color:#8c8a83}
+
+.location{position:absolute;right:38px;bottom:30px;z-index:3;width:176px;background:rgba(255,255,255,.90);border:1px solid rgba(20,20,17,.09);border-radius:12px;padding:14px 15px;box-shadow:0 10px 32px rgba(24,22,18,.10);backdrop-filter:blur(12px)}
+.location strong{display:block;font-family:Georgia,"Times New Roman",serif;font-size:13px;margin-bottom:5px}
+.location span{font-size:8px;line-height:1.45;color:#5f5c55}
+.note{position:fixed;left:50%;bottom:22px;transform:translate(-50%,12px);opacity:0;background:#171714;color:white;padding:10px 15px;border-radius:999px;font-size:10px;transition:.2s;z-index:10;pointer-events:none}
+.note.show{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:900px){
+  .hero{height:auto;max-height:none;min-height:100vh}
+  .photo{width:100%;opacity:.24}
+  .photo:before{background:linear-gradient(90deg,var(--ivory) 0%,rgba(248,246,241,.72) 100%)}
+  .shell{padding:0 22px}
+  .navlinks{display:none}
+  .grid{height:auto;grid-template-columns:1fr;gap:28px;padding:65px 0 80px}
+  .copy{max-width:600px}
+  h1{font-size:48px}
+  .voice{justify-self:start;width:min(100%,360px)}
+  .location{display:none}
+}
+@media(max-width:520px){
+  h1{font-size:42px}
+  .lead{font-size:15px}
+  .proofs{gap:14px;flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="photo" aria-hidden="true"></div>
+  <div class="shell">
+    <nav>
+      <div class="brand">AVA<span>HOTEL</span></div>
+      <div class="navlinks">
+        <a href="#overview">Overview</a>
+        <a href="#demo">Demo</a>
+        <a href="#how">How it works</a>
+      </div>
+      <button class="nav-cta" onclick="focusAva()">Try Ava</button>
+    </nav>
+
+    <main class="grid" id="overview">
+      <div class="copy">
+        <div class="eyebrow">AI concierge · hotel operations</div>
+        <h1>Ava makes every guest request actionable.</h1>
+        <p class="lead">A voice concierge that understands natural requests, turns them into structured tasks, and connects the guest experience to hotel operations.</p>
+        <div class="actions">
+          <button class="primary" onclick="focusAva()">Try Ava — Live Demo</button>
+          <button class="secondary" onclick="toast('Demo video can be linked here when ready.')">Watch 3-min Demo</button>
+        </div>
+        <div class="proofs">
+          <div class="proof"><i class="mark"></i>Natural conversation</div>
+          <div class="proof"><i class="mark"></i>Real task execution</div>
+          <div class="proof"><i class="mark"></i>Operational guardrails</div>
+        </div>
+      </div>
+
+      <section class="voice" id="demo" aria-label="Ava voice demo">
+        <div class="voice-head">
+          <strong>Talk to Ava</strong>
+          <span class="online"><i class="dot"></i>Ava is online</span>
+        </div>
+        <!-- VAPI CONFIG — REPLACE THESE TWO VALUES after you deploy the site and create a restricted public key. -->
+        <vapi-widget
+          public-key="PASTE_VAPI_PUBLIC_KEY_HERE"
+          assistant-id="PASTE_AVA_ASSISTANT_ID_HERE"
+          mode="voice"
+          theme="light"
+          size="compact">
+        </vapi-widget>
+        <div class="tap">Use the Ava voice control above</div>
+        <button class="prompt" onclick="focusAva()">I need two extra towels.<b>›</b></button>
+        <button class="prompt" onclick="focusAva()">I finish work at 4 and have a call at 7. What can I do?<b>›</b></button>
+        <button class="prompt" onclick="focusAva()">What’s the best nightclub tonight?<b>›</b></button>
+        <button class="prompt" onclick="focusAva()">There are sparks coming from the outlet.<b>›</b></button>
+      </section>
+    </main>
+  </div>
+
+  <div class="location">
+    <strong>Ava, Valencia</strong>
+    <span>A quiet luxury stay with an AI concierge for guest requests.</span>
+  </div>
+</section>
+
+<div class="note" id="note"></div>
+<script>
+function toast(message){
+  const n=document.getElementById('note');
+  n.textContent=message;n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),2200);
+}
+function focusAva(){
+  document.getElementById('demo')?.scrollIntoView({behavior:'smooth',block:'center'});
+  const missing = document.querySelector('vapi-widget')?.getAttribute('assistant-id')?.startsWith('PASTE_');
+  if(missing) toast('Add your Vapi public key + Ava Assistant ID in the marked VAPI CONFIG block.');
+}
+</script>
+<script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
+</body>
+</html>
