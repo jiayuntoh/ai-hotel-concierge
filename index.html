@@ -86,16 +86,16 @@ h1{font-family:Georgia,"Times New Roman",serif;font-size:54px;line-height:.98;le
         <a href="#demo">Demo</a>
         <a href="#how">How it works</a>
       </div>
-      <button class="nav-cta" onclick="focusAva()">Try Ava</button>
+      <button class="nav-cta" onclick="focusSam()">Try Sam</button>
     </nav>
 
     <main class="grid" id="overview">
       <div class="copy">
         <div class="eyebrow">AI concierge · hotel operations</div>
-        <h1>Ava makes every guest request actionable.</h1>
+        <h1>Sam makes every guest request actionable.</h1>
         <p class="lead">A voice concierge that understands natural requests, turns them into structured tasks, and connects the guest experience to hotel operations.</p>
         <div class="actions">
-          <button class="primary" onclick="focusAva()">Try Ava — Live Demo</button>
+          <button class="primary" onclick="focusSam()">Try Sam — Live Demo</button>
           <button class="secondary" onclick="toast('Demo video can be linked here when ready.')">Watch 3-min Demo</button>
         </div>
         <div class="proofs">
@@ -105,24 +105,24 @@ h1{font-family:Georgia,"Times New Roman",serif;font-size:54px;line-height:.98;le
         </div>
       </div>
 
-      <section class="voice" id="demo" aria-label="Ava voice demo">
+      <section class="voice" id="demo" aria-label="Sam voice demo">
         <div class="voice-head">
-          <strong>Talk to Ava</strong>
-          <span class="online"><i class="dot"></i>Ava is online</span>
+          <strong>Talk to Sam</strong>
+          <span class="online"><i class="dot"></i>Sam is online</span>
         </div>
-        <!-- VAPI CONFIG — REPLACE THESE TWO VALUES after you deploy the site and create a restricted public key. -->
+        <!-- VAPI CONFIG — production browser voice widget for Sam. -->
         <vapi-widget
-          public-key="PASTE_VAPI_PUBLIC_KEY_HERE"
-          assistant-id="PASTE_AVA_ASSISTANT_ID_HERE"
+          public-key="a192050e-cf5c-4740-90ef-b0c232534192"
+          assistant-id="15c67286-5cd1-4569-91d2-6558a65be1b2"
           mode="voice"
           theme="light"
           size="compact">
         </vapi-widget>
-        <div class="tap">Use the Ava voice control above</div>
-        <button class="prompt" onclick="focusAva()">I need two extra towels.<b>›</b></button>
-        <button class="prompt" onclick="focusAva()">I finish work at 4 and have a call at 7. What can I do?<b>›</b></button>
-        <button class="prompt" onclick="focusAva()">What’s the best nightclub tonight?<b>›</b></button>
-        <button class="prompt" onclick="focusAva()">There are sparks coming from the outlet.<b>›</b></button>
+        <div class="tap">Use the Sam voice control above</div>
+        <button class="prompt" onclick="focusSam()">I need two extra towels.<b>›</b></button>
+        <button class="prompt" onclick="focusSam()">I finish work at 4 and have a call at 7. What can I do?<b>›</b></button>
+        <button class="prompt" onclick="focusSam()">What’s the best nightclub tonight?<b>›</b></button>
+        <button class="prompt" onclick="focusSam()">There are sparks coming from the outlet.<b>›</b></button>
       </section>
     </main>
   </div>
@@ -140,10 +140,8 @@ function toast(message){
   n.textContent=message;n.classList.add('show');
   setTimeout(()=>n.classList.remove('show'),2200);
 }
-function focusAva(){
+function focusSam(){
   document.getElementById('demo')?.scrollIntoView({behavior:'smooth',block:'center'});
-  const missing = document.querySelector('vapi-widget')?.getAttribute('assistant-id')?.startsWith('PASTE_');
-  if(missing) toast('Add your Vapi public key + Ava Assistant ID in the marked VAPI CONFIG block.');
 }
 </script>
 <script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
