@@ -55,6 +55,66 @@ async function createRequest(db, toolCall, callContext) {
   return { success: true, request_id: inserted.display_id, status: 'submitted', department: routing.department };
 }
 
+async function updateRequest(db, toolCall) {
+  const args = getArgs(toolCall);
+  if (!args.request_id) throw new Error('Missing required field: request_id');
+
+  const { data: existing, error: findError } = await db
+    .from('service_requests')
+    .select('*')
+    .eq('display_id', String(args.request_id))
+    .maybeSingle();
+  if (findError) throw findError;
+  if (!existing) throw new Error('Request not found.');
+  if (['COMPLETED', 'CANCELLED'].includes(existing.status)) {
+    throw new Error('Closed requests cannot be updated.');
+  }
+
+  const patch = {};
+  if (args.details !== undefined) patch.details = String(args.details);
+  if (args.quantity !== undefined) patch.quantity = args.quantity === null ? null : Number(args.quantity);
+  if (args.room_number !== undefined) patch.room_number = String(args.room_number);
+  if (args.guest_name !== undefined) patch.guest_name = args.guest_name || null;
+
+  if (args.request_type !== undefined) {
+    if (!ROUTING[args.request_type]) throw new Error('Unsupported request_type.');
+    const routing = ROUTING[args.request_type];
+    patch.request_type = args.request_type;
+    patch.department = routing.department;
+    patch.priority = routing.priority;
+    patch.sla_target_at = new Date(Date.now() + routing.slaMinutes * 60000).toISOString();
+  }
+
+  if (!Object.keys(patch).length) throw new Error('No changes were provided.');
+
+  const { data: updated, error: updateError } = await db
+    .from('service_requests')
+    .update(patch)
+    .eq('id', existing.id)
+    .select('*')
+    .single();
+  if (updateError) throw updateError;
+
+  const changedFields = Object.keys(patch);
+  await db.from('request_events').insert({
+    request_id: existing.id,
+    event_type: 'UPDATED',
+    actor_type: 'voice_agent',
+    actor_id: 'Sam',
+    note: `Updated by guest during the call: ${changedFields.join(', ')}.`,
+    metadata: { changed_fields: changedFields, previous: existing, updated: patch }
+  });
+
+  return {
+    success: true,
+    request_id: updated.display_id,
+    status: updated.status,
+    quantity: updated.quantity,
+    details: updated.details,
+    department: updated.department
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const message = req.body?.message;
@@ -66,13 +126,18 @@ export default async function handler(req, res) {
   for (const call of calls) {
     try {
       const name = call?.function?.name || call?.name;
-      if (!['create_service_request', 'create_maintenance_request'].includes(name)) throw new Error(`Unsupported tool: ${name}`);
+      if (!['create_service_request', 'create_maintenance_request', 'update_service_request'].includes(name)) throw new Error(`Unsupported tool: ${name}`);
       const args = getArgs(call);
-      if (name === 'create_maintenance_request') {
-        args.request_type = 'maintenance';
-        args.details = args.details || args.issue_description || args.issue_type;
+      let result;
+      if (name === 'update_service_request') {
+        result = await updateRequest(db, call);
+      } else {
+        if (name === 'create_maintenance_request') {
+          args.request_type = 'maintenance';
+          args.details = args.details || args.issue_description || args.issue_type;
+        }
+        result = await createRequest(db, { ...call, function: { ...(call.function || {}), arguments: args } }, message.call);
       }
-      const result = await createRequest(db, { ...call, function: { ...(call.function || {}), arguments: args } }, message.call);
       results.push({ toolCallId: call.id, result: JSON.stringify(result) });
     } catch (error) {
       results.push({ toolCallId: call.id, result: JSON.stringify({ success: false, error: error.message || 'Request could not be created.' }) });
