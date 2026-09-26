@@ -105,43 +105,7 @@ h1{
   font-family:Georgia,"Times New Roman",serif;
   font-size:clamp(20px,1.6vw,26px);font-weight:600
 }
-vapi-widget{
-  display:block;
-  max-width:100%;
-  position:relative;
-  z-index:2;
-}
-.voice{position:relative}
-.sam-pulse-cue{
-  position:absolute;
-  right:20px;
-  bottom:20px;
-  width:54px;
-  height:54px;
-  border-radius:16px;
-  pointer-events:none;
-  z-index:1;
-}
-.sam-pulse-cue::before,
-.sam-pulse-cue::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:18px;
-  border:2px solid rgba(36,201,165,.34);
-  opacity:0;
-  animation:samCuePulse 2.4s ease-out infinite;
-}
-.sam-pulse-cue::after{animation-delay:.6s}
-@keyframes samCuePulse{
-  0%,50%{opacity:0;transform:scale(.84)}
-  62%{opacity:.7}
-  100%{opacity:0;transform:scale(1.34)}
-}
-.voice.sam-engaged .sam-pulse-cue{display:none}
-@media(prefers-reduced-motion:reduce){
-  .sam-pulse-cue::before,.sam-pulse-cue::after{animation:none}
-}
+vapi-widget{display:block;max-width:100%}
 .prompt{
   width:100%;min-height:44px;border:1px solid rgba(20,20,17,.09);background:#fff;
   border-radius:10px;padding:11px 13px;margin-top:9px;display:flex;
@@ -249,7 +213,8 @@ vapi-widget{
         </div>
         <!-- VAPI CONFIG — production browser voice widget for Sam. -->
         <vapi-widget
-          id="samVoice"
+          public-key="a192050e-cf5c-4740-90ef-b0c232534192"
+          assistant-id="15c67286-5cd1-4569-91d2-6558a65be1b2"
           mode="voice"
           theme="light"
           size="tiny"
@@ -259,7 +224,6 @@ vapi-widget{
           empty-voice-message="Tap Start to speak."
           show-transcript="false">
         </vapi-widget>
-        <span class="sam-pulse-cue" aria-hidden="true"></span>
         <button class="prompt" onclick="focusSam()">I need two extra towels.<b>›</b></button>
         <button class="prompt" onclick="focusSam()">I finish work at 4 and have a call at 7. What can I do?<b>›</b></button>
         <button class="prompt" onclick="focusSam()">What’s the best nightclub tonight?<b>›</b></button>
@@ -279,35 +243,7 @@ function toast(message){
 function focusSam(){
   document.getElementById('demo')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
-async function initSamVoice(){
-  const voiceWidget=document.getElementById('samVoice');
-  const voiceCard=document.getElementById('demo');
-  if(!voiceWidget||!voiceCard) return;
-
-  try{
-    const response=await fetch('/api/public-config',{cache:'no-store'});
-    const cfg=await response.json();
-    if(!response.ok||!cfg.VAPI_PUBLIC_KEY||!cfg.VAPI_ASSISTANT_ID) throw new Error('Sam voice configuration is unavailable.');
-    voiceWidget.setAttribute('public-key',cfg.VAPI_PUBLIC_KEY);
-    voiceWidget.setAttribute('assistant-id',cfg.VAPI_ASSISTANT_ID);
-    const script=document.createElement('script');
-    script.src='https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js';
-    script.async=true;
-    script.type='text/javascript';
-    document.body.appendChild(script);
-    voiceWidget.dataset.ready='true';
-  }catch(error){
-    console.error(error);
-    voiceWidget.style.display='none';
-    toast('Sam voice demo is not configured yet.');
-  }
-
-  const stopPulse=()=>voiceCard.classList.add('sam-engaged');
-  voiceWidget.addEventListener('pointerdown',stopPulse,{once:true});
-  voiceWidget.addEventListener('click',stopPulse,{once:true});
-}
-document.addEventListener('DOMContentLoaded',initSamVoice);
 </script>
-
+<script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
 </body>
 </html>
