@@ -50,9 +50,6 @@ h1{font-family:Georgia,"Times New Roman",serif;font-size:54px;line-height:.98;le
 .prompt{width:100%;min-height:37px;border:1px solid rgba(20,20,17,.09);background:#fff;border-radius:10px;padding:9px 11px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;text-align:left;gap:12px;font-size:9px;color:#3d3c38;cursor:pointer}
 .prompt b{font-size:14px;font-weight:400;color:#8c8a83}
 
-.location{position:absolute;right:38px;bottom:30px;z-index:3;width:210px;background:rgba(255,255,255,.90);border:1px solid rgba(20,20,17,.09);border-radius:12px;padding:14px 15px;box-shadow:0 10px 32px rgba(24,22,18,.10);backdrop-filter:blur(12px)}
-.location strong{display:block;font-family:Georgia,"Times New Roman",serif;font-size:13px;margin-bottom:5px}
-.location span{font-size:8px;line-height:1.5;color:#5f5c55}
 
 .note{position:fixed;left:50%;bottom:22px;transform:translate(-50%,12px);opacity:0;background:#171714;color:white;padding:10px 15px;border-radius:999px;font-size:10px;transition:.2s;z-index:10;pointer-events:none}
 .note.show{opacity:1;transform:translate(-50%,0)}
@@ -67,7 +64,6 @@ h1{font-family:Georgia,"Times New Roman",serif;font-size:54px;line-height:.98;le
   .copy{max-width:600px}
   h1{font-size:48px}
   .voice{justify-self:start;width:min(100%,360px)}
-  .location{display:none}
 }
 @media(max-width:520px){
   h1{font-size:42px}
@@ -130,12 +126,6 @@ h1{font-family:Georgia,"Times New Roman",serif;font-size:54px;line-height:.98;le
       </section>
     </main>
   </div>
-
-  <div class="location">
-    <strong>Ava Hotel</strong>
-    <span>Thoughtful design, intuitive service, and every detail handled—so each guest enjoys an effortless, exceptional stay.</span>
-  </div>
-
 </section>
 
 <div class="note" id="note"></div>
