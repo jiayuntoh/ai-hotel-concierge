@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Ava Hotel operations board with voice-agent-ready workflow integration." />
+  <title>Ava Hotel — Operations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">AVA</div>
+        <div>
+          <div class="brand-name">Ava Hotel</div>
+          <div class="brand-sub">Hotel Operations</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="ops"><span class="nav-icon">▦</span><span>Operations</span></button>
+        <button class="nav-item" data-view="staff"><span class="nav-icon">◎</span><span>Staff view</span></button>
+      </nav>
+
+      <div class="sidebar-card">
+        <div class="eyebrow">Live architecture</div>
+        <p>Ava → validated request → shared operations queue.</p>
+        <div class="mode-row">
+          <span class="status-dot" id="modeDot"></span>
+          <span id="modeLabel">Demo mode</span>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <span>Ava Hotel</span>
+        <small>Ava Hotel operations prototype</small>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input id="searchInput" type="search" placeholder="Search rooms, requests, or staff…" />
+        </div>
+        <div class="top-actions">
+          <button id="simulateBtn" class="button secondary">Simulate Ava request</button>
+          <button id="newRequestBtn" class="button primary">+ New request</button>
+        </div>
+      </header>
+
+      <section id="opsView" class="view active">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">Guest operations</div>
+            <h1>Operations Board</h1>
+            <p>Turn guest requests into accountable physical work.</p>
+          </div>
+          <div class="metric-strip">
+            <div class="metric"><span id="activeMetric">0</span><small>Active</small></div>
+            <div class="metric"><span id="unassignedMetric">0</span><small>Unassigned</small></div>
+            <div class="metric danger"><span id="riskMetric">0</span><small>At risk</small></div>
+            <div class="metric"><span id="blockedMetric">0</span><small>Blocked</small></div>
+          </div>
+        </div>
+
+        <div class="filterbar">
+          <button class="chip active" data-filter="all">All</button>
+          <button class="chip" data-filter="housekeeping">Housekeeping</button>
+          <button class="chip" data-filter="engineering">Maintenance</button>
+          <button class="chip" data-filter="front_desk">Guest Services</button>
+        </div>
+
+        <div id="board" class="board" aria-live="polite"></div>
+      </section>
+
+      <section id="staffView" class="view">
+        <div class="staff-shell">
+          <div class="staff-phone">
+            <div class="staff-head">
+              <div>
+                <div class="eyebrow">My work</div>
+                <h2>Maria Santos</h2>
+                <p>Housekeeping · Floor runner</p>
+              </div>
+              <span class="online-pill">On shift</span>
+            </div>
+            <div id="staffTasks" class="staff-list"></div>
+          </div>
+
+          <div class="staff-explainer">
+            <div class="eyebrow">Design principle</div>
+            <h2>Supervisor visibility. Worker simplicity.</h2>
+            <p>The board is dense because supervisors manage a portfolio of work. The worker view shows only the next physical action.</p>
+            <div class="principle-grid">
+              <div><strong>One tap</strong><span>Start, block, complete.</span></div>
+              <div><strong>Shared state</strong><span>Changes update the supervisor queue.</span></div>
+              <div><strong>Exceptions visible</strong><span>Blocked work is surfaced immediately.</span></div>
+              <div><strong>Audit trail</strong><span>Every transition is recorded.</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="drawerBackdrop" class="backdrop hidden"></div>
+  <aside id="requestDrawer" class="drawer hidden" aria-hidden="true"></aside>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden"></div>
+  <div id="newRequestModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="newRequestTitle">
+    <div class="modal-head">
+      <div><div class="eyebrow">Manual intake</div><h2 id="newRequestTitle">New guest request</h2></div>
+      <button class="icon-button" id="closeModalBtn" aria-label="Close">×</button>
+    </div>
+    <form id="newRequestForm">
+      <label>Room<input name="room_number" required placeholder="512" /></label>
+      <label>Guest name<input name="guest_name" placeholder="Toh" /></label>
+      <label>Department<select name="department"><option value="housekeeping">Housekeeping</option><option value="engineering">Maintenance</option><option value="front_desk">Guest Services</option></select></label>
+      <label>Request<input name="details" required placeholder="2 extra towels" /></label>
+      <label>Priority<select name="priority"><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select></label>
+      <div class="form-actions"><button type="button" class="button secondary" id="cancelModalBtn">Cancel</button><button class="button primary">Create request</button></div>
+    </form>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
