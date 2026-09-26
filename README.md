@@ -48,3 +48,14 @@ The repository is deployed as **one Vercel project**. The guest website owns the
 6. Follow `docs/SETUP_CHECKLIST.md` to connect Supabase and Vapi.
 
 Do not upload only the ZIP to GitHub. Unzip it first, then commit the files and folders shown above.
+
+
+## Supabase environment
+
+Configure these variables in the Vercel Production environment before enabling the live operations board:
+
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SECRET_KEY`
+
+After saving them, a new production deployment is required. The browser reads only the URL and publishable key through `/api/public-config`; the secret key remains server-side for the Vapi and operations API routes.
