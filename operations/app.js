@@ -103,9 +103,16 @@
   }
 
   async function initSupabase(){
-    const cfg=window.HOTEL_OPS_CONFIG||{}; if(!cfg.SUPABASE_URL||!cfg.SUPABASE_ANON_KEY){loadDemo();render();return}
+    let cfg=window.HOTEL_OPS_CONFIG||{};
+    if(!cfg.SUPABASE_URL||!cfg.SUPABASE_PUBLISHABLE_KEY){
+      try{
+        const response=await fetch('/api/public-config',{cache:'no-store'});
+        if(response.ok) cfg=await response.json();
+      }catch(e){ console.warn('Public config unavailable',e); }
+    }
+    if(!cfg.SUPABASE_URL||!cfg.SUPABASE_PUBLISHABLE_KEY){loadDemo();render();return}
     try{
-      const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2');state.supabase=createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);state.live=true;$('#modeDot').classList.add('live');$('#modeLabel').textContent='Live · Supabase';
+      const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2');state.supabase=createClient(cfg.SUPABASE_URL,cfg.SUPABASE_PUBLISHABLE_KEY);state.live=true;$('#modeDot').classList.add('live');$('#modeLabel').textContent='Live · Supabase';
       await refreshLive();
       state.supabase.channel('ops-board').on('postgres_changes',{event:'*',schema:'public',table:'service_requests'},refreshLive).on('postgres_changes',{event:'*',schema:'public',table:'request_events'},refreshLive).subscribe();
     }catch(e){console.error(e);loadDemo();render();toast('Live connection failed — using demo mode')}
