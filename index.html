@@ -108,31 +108,39 @@ h1{
 vapi-widget{
   display:block;
   max-width:100%;
-  transform-origin:center center;
-  animation:samVoicePulse 2.4s ease-in-out infinite;
-  will-change:transform,filter;
+  position:relative;
+  z-index:2;
 }
-vapi-widget.sam-engaged{animation:none;filter:none;transform:none}
-@keyframes samVoicePulse{
-  0%,55%,100%{
-    transform:scale(1);
-    filter:drop-shadow(0 0 0 rgba(36,201,165,0));
-  }
-  68%{
-    transform:scale(1.055);
-    filter:drop-shadow(0 0 8px rgba(36,201,165,.38));
-  }
-  82%{
-    transform:scale(1.015);
-    filter:drop-shadow(0 0 16px rgba(36,201,165,.22));
-  }
-  92%{
-    transform:scale(1.045);
-    filter:drop-shadow(0 0 10px rgba(36,201,165,.30));
-  }
+.voice{position:relative}
+.sam-pulse-cue{
+  position:absolute;
+  right:20px;
+  bottom:20px;
+  width:54px;
+  height:54px;
+  border-radius:16px;
+  pointer-events:none;
+  z-index:1;
 }
+.sam-pulse-cue::before,
+.sam-pulse-cue::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:18px;
+  border:2px solid rgba(36,201,165,.34);
+  opacity:0;
+  animation:samCuePulse 2.4s ease-out infinite;
+}
+.sam-pulse-cue::after{animation-delay:.6s}
+@keyframes samCuePulse{
+  0%,50%{opacity:0;transform:scale(.84)}
+  62%{opacity:.7}
+  100%{opacity:0;transform:scale(1.34)}
+}
+.voice.sam-engaged .sam-pulse-cue{display:none}
 @media(prefers-reduced-motion:reduce){
-  vapi-widget{animation:none;filter:none;transform:none}
+  .sam-pulse-cue::before,.sam-pulse-cue::after{animation:none}
 }
 .prompt{
   width:100%;min-height:44px;border:1px solid rgba(20,20,17,.09);background:#fff;
@@ -252,6 +260,7 @@ vapi-widget.sam-engaged{animation:none;filter:none;transform:none}
           empty-voice-message="Tap Start to speak."
           show-transcript="false">
         </vapi-widget>
+        <span class="sam-pulse-cue" aria-hidden="true"></span>
         <button class="prompt" onclick="focusSam()">I need two extra towels.<b>›</b></button>
         <button class="prompt" onclick="focusSam()">I finish work at 4 and have a call at 7. What can I do?<b>›</b></button>
         <button class="prompt" onclick="focusSam()">What’s the best nightclub tonight?<b>›</b></button>
@@ -273,8 +282,9 @@ function focusSam(){
 }
 document.addEventListener('DOMContentLoaded',()=>{
   const voiceWidget=document.querySelector('vapi-widget');
-  if(!voiceWidget) return;
-  const stopPulse=()=>voiceWidget.classList.add('sam-engaged');
+  const voiceCard=document.getElementById('demo');
+  if(!voiceWidget||!voiceCard) return;
+  const stopPulse=()=>voiceCard.classList.add('sam-engaged');
   voiceWidget.addEventListener('pointerdown',stopPulse,{once:true});
   voiceWidget.addEventListener('click',stopPulse,{once:true});
 });
