@@ -21,8 +21,11 @@ function authorized(req) {
   const auth = req.headers.authorization || '';
   if (configuredSecret && auth === `Bearer ${configuredSecret}`) return true;
 
-  // Portfolio demo: allow browser actions only from the deployed Ava Hotel site.
-  // Database credentials remain server-side and all actions are still validated below.
+  // Browser writes are disabled by default. Same-origin checks are only a
+  // demo convenience, not an authentication boundary, so they are honored
+  // only when the explicit demo-only switch is enabled.
+  if (process.env.DEMO_ALLOW_PUBLIC_WRITES !== 'true') return false;
+
   const allowedOrigin = process.env.APP_ORIGIN || 'https://ava-hotel.vercel.app';
   const origin = req.headers.origin || '';
   const referer = req.headers.referer || '';
