@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     const [requestResult, staffResult] = await Promise.all([
       db
         .from('service_requests')
-        .select('id,display_id,room_number,request_type,details,quantity,department,priority,status,assignee_id,source,blocked_reason,created_at,sla_target_at,completed_at,request_events(id,event_type,actor_type,actor_id,from_status,to_status,note,created_at)')
+        .select('id,display_id,room_number,request_type,details,quantity,department,priority,status,assignee_id,source,blocked_reason,created_at,sla_target_at,completed_at,request_events(id,event_type,actor_type,from_status,to_status,note,created_at)')
         .order('created_at', { ascending: false }),
       db
         .from('staff')
