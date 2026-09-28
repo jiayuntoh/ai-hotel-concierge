@@ -16,6 +16,10 @@ function dbClient() {
   return createClient(url, secret, { auth: { persistSession: false } });
 }
 
+function sameOrigin(req) {
+  return sameOrigin(req);
+}
+
 function authorized(req) {
   const configuredSecret = process.env.OPS_ACTION_SECRET;
   const auth = req.headers.authorization || '';
@@ -34,11 +38,25 @@ function authorized(req) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  if (!authorized(req)) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
     const db = dbClient();
     const body = req.body || {};
+
+    // Public demo reset is deliberately constrained to Room 512 test data.
+    // It cannot delete arbitrary rooms or staff data.
+    if (body.action === 'reset_demo') {
+      if (!sameOrigin(req) && !authorized(req)) return res.status(401).json({ error: 'Unauthorized' });
+      const { data: deleted, error: resetErr } = await db
+        .from('service_requests')
+        .delete()
+        .eq('room_number', '512')
+        .select('id');
+      if (resetErr) throw resetErr;
+      return res.status(200).json({ deleted: deleted?.length || 0 });
+    }
+
+    if (!authorized(req)) return res.status(401).json({ error: 'Unauthorized' });
 
     if (body.action === 'create') {
       if (!body.room_number || !body.details || !body.department) {
