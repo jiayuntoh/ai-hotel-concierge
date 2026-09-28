@@ -106,6 +106,10 @@ h1{
   font-size:clamp(20px,1.6vw,26px);font-weight:600
 }
 vapi-widget{display:block;max-width:100%}
+.voice-status{
+  border:1px solid var(--hair);background:#fbfaf7;border-radius:10px;padding:12px 13px;
+  font-size:11px;line-height:1.45;color:var(--muted)
+}
 .prompt{
   width:100%;min-height:44px;border:1px solid rgba(20,20,17,.09);background:#fff;
   border-radius:10px;padding:11px 13px;margin-top:9px;display:flex;
@@ -213,8 +217,7 @@ vapi-widget{display:block;max-width:100%}
         </div>
         <!-- VAPI CONFIG — production browser voice widget for Sam. -->
         <vapi-widget
-          public-key="a192050e-cf5c-4740-90ef-b0c232534192"
-          assistant-id="15c67286-5cd1-4569-91d2-6558a65be1b2"
+          id="samWidget"
           mode="voice"
           theme="light"
           size="tiny"
@@ -224,6 +227,9 @@ vapi-widget{display:block;max-width:100%}
           empty-voice-message="Tap Start to speak."
           show-transcript="false">
         </vapi-widget>
+        <div id="voiceStatus" class="voice-status" role="status" hidden>
+          Voice demo configuration is unavailable. Add the Vapi environment variables and redeploy.
+        </div>
         <button class="prompt" onclick="focusSam()">I need two extra towels.<b>›</b></button>
         <button class="prompt" onclick="focusSam()">I finish work at 4 and have a call at 7. What can I do?<b>›</b></button>
         <button class="prompt" onclick="focusSam()">What’s the best nightclub tonight?<b>›</b></button>
@@ -243,7 +249,28 @@ function toast(message){
 function focusSam(){
   document.getElementById('demo')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
+async function bootSam(){
+  const widget=document.getElementById('samWidget');
+  const status=document.getElementById('voiceStatus');
+  try{
+    const response=await fetch('/api/public-config',{cache:'no-store'});
+    const config=await response.json();
+    if(!response.ok||!config.configured) throw new Error('Voice demo is not configured.');
+    widget.setAttribute('public-key',config.VAPI_PUBLIC_KEY);
+    widget.setAttribute('assistant-id',config.VAPI_ASSISTANT_ID);
+
+    const script=document.createElement('script');
+    script.src='https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js';
+    script.async=true;
+    script.type='text/javascript';
+    script.onerror=()=>{widget.hidden=true;status.hidden=false;};
+    document.body.appendChild(script);
+  }catch(error){
+    widget.hidden=true;
+    status.hidden=false;
+  }
+}
+bootSam();
 </script>
-<script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
 </body>
 </html>
