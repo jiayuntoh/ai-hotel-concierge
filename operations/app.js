@@ -102,9 +102,25 @@
     const r={id:`local-${Date.now()}`,display_id:nextDisplayId(),room_number:data.room_number,guest_name:data.guest_name||'',request_type:data.request_type||'amenity',details:data.details,quantity:data.quantity||null,department:dept,priority:data.priority||'normal',status:'NEW',assignee_id:null,source,created_at:new Date().toISOString(),sla_target_at:new Date(Date.now()+sla*60000).toISOString(),events:[{type:'CREATED',actor:source==='Voice'?'Sam · Voice':'Manual intake',at:new Date().toISOString(),note:data.details}]};state.requests.unshift(r);saveDemo();render();toast(`${r.display_id} created`);return r;
   }
 
-  async function sendAction(body){
-    if(state.live&&!state.writesEnabled){toast('This public portfolio board is read-only.');return null}
-    try{const res=await fetch(window.HOTEL_OPS_CONFIG.ACTION_API_URL||'/api/request-action',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});const data=await res.json();if(!res.ok)throw new Error(data.error||'Action failed');toast('Updated');return data}catch(e){toast(e.message||'Action failed');return null}
+  async function sendAction(body,{allowReadOnly=false}={}){
+    if(state.live&&!state.writesEnabled&&!allowReadOnly){toast('This public portfolio board is read-only.');return null}
+    try{const res=await fetch('/api/request-action',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});const data=await res.json();if(!res.ok)throw new Error(data.error||'Action failed');return data}catch(e){toast(e.message||'Action failed');return null}
+  }
+
+  async function resetDemo(){
+    const ok=confirm('Clear all Room 512 demo requests? This cannot be undone.');
+    if(!ok)return;
+    if(state.live){
+      const result=await sendAction({action:'reset_demo'},{allowReadOnly:true});
+      if(!result)return;
+      await refreshLive();
+      toast(`Reset complete · ${result.deleted||0} cleared`);
+      return;
+    }
+    state.requests=state.requests.filter(r=>String(r.room_number)!=='512');
+    saveDemo();
+    render();
+    toast('Reset complete · Room 512 cleared');
   }
 
   async function refreshLive(){
@@ -141,7 +157,7 @@
   $$('.nav-item').forEach(btn=>btn.onclick=()=>{$$('.nav-item').forEach(b=>b.classList.remove('active'));btn.classList.add('active');$$('.view').forEach(v=>v.classList.remove('active'));$(`#${btn.dataset.view}View`).classList.add('active')});
   $$('.chip').forEach(btn=>btn.onclick=()=>{$$('.chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');state.filter=btn.dataset.filter;renderBoard()});
   $('#searchInput').addEventListener('input',e=>{state.query=e.target.value;renderBoard()});
-  $('#drawerBackdrop').onclick=closeDrawer;$('#newRequestBtn').onclick=showModal;$('#closeModalBtn').onclick=hideModal;$('#cancelModalBtn').onclick=hideModal;$('#modalBackdrop').onclick=hideModal;
+  $('#drawerBackdrop').onclick=closeDrawer;$('#resetBtn').onclick=resetDemo;$('#newRequestBtn').onclick=showModal;$('#closeModalBtn').onclick=hideModal;$('#cancelModalBtn').onclick=hideModal;$('#modalBackdrop').onclick=hideModal;
   $('#newRequestForm').onsubmit=async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget).entries());if(state.live){await sendAction({action:'create',...data,source:'Manual'});await refreshLive();}else createLocalRequest(data,'Manual');hideModal()};
   $('#simulateBtn').onclick=async()=>{const data={room_number:'512',guest_name:'Toh',request_type:'amenity',details:'2 extra towels',quantity:2,department:'housekeeping',priority:'normal'};if(state.live){await sendAction({action:'create',...data,source:'Voice simulation'});await refreshLive();}else createLocalRequest(data,'Voice')};
 
