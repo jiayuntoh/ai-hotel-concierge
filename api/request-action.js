@@ -17,7 +17,10 @@ function dbClient() {
 }
 
 function sameOrigin(req) {
-  return sameOrigin(req);
+  const allowedOrigin = process.env.APP_ORIGIN || 'https://ava-hotel.vercel.app';
+  const origin = req.headers.origin || '';
+  const referer = req.headers.referer || '';
+  return origin === allowedOrigin || referer.startsWith(`${allowedOrigin}/`);
 }
 
 function authorized(req) {
