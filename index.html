@@ -124,6 +124,15 @@ vapi-widget{display:block;max-width:100%}
   transition:.2s;z-index:10;pointer-events:none
 }
 .note.show{opacity:1;transform:translate(-50%,0)}
+.ops-home{
+  position:fixed;right:18px;bottom:18px;z-index:12;width:44px;height:44px;
+  display:grid;place-items:center;border:1px solid var(--hair);border-radius:50%;
+  background:rgba(255,255,255,.94);color:var(--forest);box-shadow:0 10px 30px rgba(32,28,20,.14);
+  backdrop-filter:blur(10px);text-decoration:none;transition:.18s ease
+}
+.ops-home:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(32,28,20,.18)}
+.ops-home:focus-visible{outline:2px solid var(--forest);outline-offset:3px}
+.ops-home svg{width:19px;height:19px;display:block}
 
 @media(min-width:1700px){
   .shell{width:min(100% - 96px,1650px)}
@@ -166,7 +175,7 @@ vapi-widget{display:block;max-width:100%}
   .eyebrow{margin-bottom:14px}
   h1{font-size:clamp(42px,12vw,56px);line-height:.98;margin-bottom:20px}
   .lead{font-size:15px;line-height:1.55;margin-bottom:24px}
-  .actions{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:10px}
+  .actions{display:grid;grid-template-columns:1fr;width:100%;gap:10px}
   .primary,.secondary{width:100%;padding:12px 12px;font-size:11px}
   .proofs{gap:12px 18px;margin-top:26px;padding-top:18px}
   .voice{width:100%;padding:18px;border-radius:14px}
@@ -202,7 +211,6 @@ vapi-widget{display:block;max-width:100%}
         <p class="lead">A voice concierge that understands natural requests, turns them into structured tasks, and connects the guest experience to hotel operations.</p>
         <div class="actions">
           <button class="primary" onclick="focusSam()">Try Sam — Live Demo</button>
-          <button class="secondary" onclick="toast('Demo video can be linked here when ready.')">Watch 3-min Demo</button>
         </div>
         <div class="proofs">
           <div class="proof"><i class="mark"></i>Natural conversation</div>
@@ -220,11 +228,11 @@ vapi-widget{display:block;max-width:100%}
           id="samWidget"
           mode="voice"
           theme="light"
-          size="tiny"
-          main-label="Sam"
-          start-button-text="Start"
-          end-button-text="End"
-          empty-voice-message="Tap Start to speak."
+          size="compact"
+          main-label="Talk to Sam"
+          start-button-text="Start voice"
+          end-button-text="End call"
+          empty-voice-message="Tap Start voice and allow microphone access."
           show-transcript="false">
         </vapi-widget>
         <div id="voiceStatus" class="voice-status" role="status" hidden>
@@ -239,6 +247,13 @@ vapi-widget{display:block;max-width:100%}
   </div>
 </section>
 
+<a class="ops-home" href="/operations" aria-label="Open operations board" title="Operations">
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 10.5 12 3l9 7.5"></path>
+    <path d="M5.5 9.5V21h13V9.5"></path>
+    <path d="M9.5 21v-6h5v6"></path>
+  </svg>
+</a>
 <div class="note" id="note"></div>
 <script>
 function toast(message){
